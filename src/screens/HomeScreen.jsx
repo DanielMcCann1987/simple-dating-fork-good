@@ -138,9 +138,10 @@ export default function HomeScreen({ navigation }) {
         }),
         onPanResponderRelease: (_, g) => {
           if (g.dx > SWIPE_THRESHOLD) {
-            Animated.timing(translateX, {
+            Animated.spring(translateX, {
               toValue: 500,
-              duration: 200,
+              velocity: g.vx,
+              bounciness: 0,
               useNativeDriver: true,
             }).start(() => handleLike(user.id));
           } else if (g.dx < -SWIPE_THRESHOLD) {
@@ -152,6 +153,7 @@ export default function HomeScreen({ navigation }) {
           } else {
             Animated.spring(translateX, {
               toValue: 0,
+              bounciness: 0,
               useNativeDriver: true,
             }).start();
           }
