@@ -21,7 +21,7 @@ import { createMaterialTopTabNavigator } from "@react-navigation/material-top-ta
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { supabase } from "../../Lib/supabase";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 import { decode as base64ToArrayBuffer } from "base64-arraybuffer";
 
 const Tab = createMaterialTopTabNavigator();
@@ -469,6 +469,62 @@ function EditProfileScreen() {
         })
       );
     }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const {
+                data: { user },
+                error: userErr,
+              } = await supabase.auth.getUser();
+              if (userErr || !user) throw userErr || new Error("No user");
+
+              // Remove any uploaded images
+              const { data: imgs } = await supabase
+                .from("user_images")
+                .select("url")
+                .eq("user_id", user.id);
+              if (imgs && imgs.length) {
+                const paths = imgs
+                  .map((img) => {
+                    const parts = img.url.split(`/${BUCKET_NAME}/`);
+                    return parts.length > 1 ? parts[1] : null;
+                  })
+                  .filter(Boolean);
+                if (paths.length) {
+                  await supabase.storage.from(BUCKET_NAME).remove(paths);
+                }
+              }
+
+              await supabase.from("user_images").delete().eq("user_id", user.id);
+              await supabase.from("users").delete().eq("id", user.id);
+
+              const { error } = await supabase.auth.signOut();
+              if (!error) {
+                navigation.getParent()?.dispatch(
+                  CommonActions.reset({ index: 0, routes: [{ name: "Login" }] })
+                );
+              }
+            } catch (e) {
+              console.error(e);
+              Alert.alert("Error", "Could not delete account");
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (loading) {
@@ -967,6 +1023,7 @@ function EditProfileScreen() {
       <View style={{ marginVertical: 20 }}>
         <Button title="Update Profile" onPress={updateProfile} />
         <Button title="Logout" onPress={handleLogout} />
+        <Button title="Delete Account" onPress={handleDeleteAccount} />
       </View>
     </ScrollView>
   );
