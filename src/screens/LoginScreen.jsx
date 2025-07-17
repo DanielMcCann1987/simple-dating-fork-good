@@ -1,6 +1,14 @@
 // src/screens/LoginScreen.jsx
 import React, { useState } from "react";
-import { View, TextInput, Button, Alert, StyleSheet } from "react-native";
+import {
+  View,
+  TextInput,
+  Button,
+  Alert,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { supabase } from "../../Lib/supabase";
 import { useNavigation } from "@react-navigation/native";
 
@@ -33,7 +41,10 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+    style={styles.container}
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+  >
       <TextInput
         placeholder="Email"
         autoCapitalize="none"
@@ -50,7 +61,11 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />
       <View style={styles.buttonContainer}>
-        <Button title={loading ? "Signing In..." : "Sign In"} onPress={signIn} disabled={loading} />
+      <Button
+          title={loading ? "Signing In..." : "Sign In"}
+          onPress={signIn}
+          disabled={loading}
+        />
       </View>
 
       <View style={styles.signUpContainer}>
@@ -59,7 +74,7 @@ export default function LoginScreen() {
           onPress={() => navigation.navigate("SignUp")}
         />
       </View>
-    </View>
+      </KeyboardAvoidingView>
   );
 }
 
