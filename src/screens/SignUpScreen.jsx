@@ -64,7 +64,7 @@ export default function SignUpScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.select({ ios: "padding", android: null })}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <Text style={styles.title}>Create an Account</Text>
 
